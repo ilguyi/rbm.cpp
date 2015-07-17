@@ -363,7 +363,7 @@ class BinaryRBM : public RestrictedBoltzmannMachines {
         void SamplingHiddenNodes_givenV(HiddenNodes& hidden, const arma::Row<unsigned>& sv, Vector& activation_hidden, Vector& summation_hidden);
         double ConditionalProb_givenV(const arma::Row<unsigned>& sv, const unsigned& indexi);
 
-        void Reconstruction(arma::Row<unsigned>& sv, const HiddenNodes& hidden);
+        void SamplingVisibleNodes_givenH(arma::Row<unsigned>& sv, const HiddenNodes& hidden);
         double ConditionalProb_givenH(const HiddenNodes& hidden, const unsigned& indexj);
 
         double Energy(const arma::Row<unsigned>& v, Vector& summation_hidden);
@@ -550,11 +550,11 @@ void BinaryRBM::GibbsSampling(arma::Row<unsigned>& sv, arma::vec& activation_hid
     Vector summation_hidden(rbmParas.n_hidden);
 
     SamplingHiddenNodes_givenV(hidden, sv, activation_hidden, summation_hidden);
-    Reconstruction(sv, hidden);
+    SamplingVisibleNodes_givenH(sv, hidden);
 
     for (unsigned gibbssampling=1; gibbssampling<rbmParas.CDstep; gibbssampling++) {
         SamplingHiddenNodes_givenV(hidden, sv);
-        Reconstruction(sv, hidden);
+        SamplingVisibleNodes_givenH(sv, hidden);
     }
     energy += Energy(v, summation_hidden);
 }
@@ -588,7 +588,7 @@ double BinaryRBM::ConditionalProb_givenV(const arma::Row<unsigned>& sv, const un
 }
 
 
-void BinaryRBM::Reconstruction(arma::Row<unsigned>& sv, const HiddenNodes& hidden) {
+void BinaryRBM::SamplingVisibleNodes_givenH(arma::Row<unsigned>& sv, const HiddenNodes& hidden) {
     boost::random::uniform_real_distribution<> uniform_real_dist(0, 1);        //    Choose a distribution
     boost::random::variate_generator<boost::mt19937 &,
         boost::random::uniform_real_distribution<> > urnd(rng, uniform_real_dist);    //    link the Generator to the distribution
@@ -687,7 +687,7 @@ class GaussianBernoulliRBM : public RestrictedBoltzmannMachines {
         void SamplingHiddenNodes_givenV(HiddenNodes& hidden, const arma::Row<double>& sv, Vector& activation_hidden, Vector& summation_hidden);
         double ConditionalProb_givenV(const arma::Row<double>& sv, const unsigned& indexi);
 
-        void Reconstruction(arma::Row<double>& sv, HiddenNodes& hidden);
+        void SamplingVisibleNodes_givenH(arma::Row<double>& sv, HiddenNodes& hidden);
         double ConditionalProb_givenH(const HiddenNodes& hidden, const unsigned& indexi);
 
         double Energy(const arma::Row<double>& v, Vector& summation_hidden);
@@ -904,11 +904,11 @@ void GaussianBernoulliRBM::GibbsSampling(arma::Row<double>& sv, arma::vec& activ
     Vector summation_hidden(rbmParas.n_hidden);
 
     SamplingHiddenNodes_givenV(hidden, sv, activation_hidden, summation_hidden);
-    Reconstruction(sv, hidden);
+    SamplingVisibleNodes_givenH(sv, hidden);
 
     for (unsigned gibbssampling=1; gibbssampling<rbmParas.CDstep; gibbssampling++) {
         SamplingHiddenNodes_givenV(hidden, sv);
-        Reconstruction(sv, hidden);
+        SamplingVisibleNodes_givenH(sv, hidden);
     }
     energy += Energy(v, summation_hidden);
 }
@@ -944,7 +944,7 @@ double GaussianBernoulliRBM::ConditionalProb_givenV(const arma::Row<double>& sv,
 
 
 
-void GaussianBernoulliRBM::Reconstruction(arma::Row<double>& sv, HiddenNodes& hidden) {
+void GaussianBernoulliRBM::SamplingVisibleNodes_givenH(arma::Row<double>& sv, HiddenNodes& hidden) {
     for (unsigned j=0; j<rbmParas.dimension; j++)
         sv(j) = ConditionalProb_givenH(hidden, j);
 }
