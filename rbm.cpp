@@ -26,7 +26,7 @@ int main (int argc, char** argv)
     rbm.ReadParameters(argv[2]);
     rbm.PrintParameters();
 
-    unsigned N = rbm.GetN();
+    unsigned N = rbm.GetN_train();
     unsigned dimension = rbm.GetDimension();
 
 
@@ -41,7 +41,7 @@ int main (int argc, char** argv)
 
     //    Transform Binary Data for Binary Restricted Boltzmann Machines
     MNIST.TransformBinaryData();
-//    cout << "Transform binary data complete" << endl;
+    cout << "Transform binary data complete" << endl;
 
 
     //    Set linear scaling each features for Gaussian Bernoulli Restricted Boltzmann Machines
@@ -57,7 +57,6 @@ int main (int argc, char** argv)
     rbm.Initialize("uniform");
 
     for (unsigned step=0; step<1; step++) {
-
         rbm.Training(MNIST, step);
 //        rbm.Training(normMNIST, step);
     }
