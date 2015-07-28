@@ -7,7 +7,7 @@
  * rbm training (NO classification)
  *
  * 2015. 06.
- * modified 2015. 07. 17.
+ * modified 2015. 07. 28.
  * by Il Gu Yi
 ***********************************************************/
 
@@ -72,6 +72,10 @@ class RestrictedBoltzmannMachines {
 
         unsigned GetN_train() const;
         unsigned GetDimension() const;
+
+        Weight GetWeight() const;
+        Bias GetBiasVisible() const;
+        Bias GetBiasHidden() const;
 
         void PrintWeight() const;
         void PrintBiasVisible() const;
@@ -185,6 +189,11 @@ void RestrictedBoltzmannMachines::WriteParameters(const string& filename) const 
 
 unsigned RestrictedBoltzmannMachines::GetN_train() const { return rbmParas.N_train; }
 unsigned RestrictedBoltzmannMachines::GetDimension() const { return rbmParas.dimension; }
+
+Weight RestrictedBoltzmannMachines::GetWeight() const { return weight; }
+Bias RestrictedBoltzmannMachines::GetBiasVisible() const { return biasVisible; }
+Bias RestrictedBoltzmannMachines::GetBiasHidden() const { return biasHidden; }
+
 
 
 
