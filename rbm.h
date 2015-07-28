@@ -11,8 +11,8 @@
  * by Il Gu Yi
 ***********************************************************/
 
-#ifndef RESTRICTEDBOLTZMANNMACHINES_H
-#define RESTRICTEDBOLTZMANNMACHINES_H
+#ifndef RESTRICTED_BOLTZMANN_MACHINES_H
+#define RESTRICTED_BOLTZMANN_MACHINES_H
 
 #include <boost/random.hpp>
 #include <armadillo>
@@ -37,21 +37,22 @@ typedef arma::vec Vector;
 ***********************************************************/
 typedef struct RestrictedBoltzmannMachinesParamters {
     RestrictedBoltzmannMachinesParamters() :
-        N(0), dimension(0),
+        N_train(0), dimension(0),
         n_hidden(10),
         learningRate(0.1),
         regularization(0.0),
         minibatchSize(1),
-        CDstep(1), maxStep(100) {};
+        CDstep(1),
+        maxEpoch(100) {};
 
-    unsigned N;
+    unsigned N_train;
     unsigned dimension;
     unsigned n_hidden;
     double learningRate;
     double regularization;
     unsigned minibatchSize;
     unsigned CDstep;
-    unsigned maxStep;
+    unsigned maxEpoch;
 } RBMParameters;
 
 
@@ -63,13 +64,13 @@ typedef struct RestrictedBoltzmannMachinesParamters {
 class RestrictedBoltzmannMachines {
     public:
         void ReadParameters(const string& filename);
-        void ParametersSetting(const unsigned& N_, const unsigned& dimension_, const unsigned& n_hidden_,
-            const double& learningRate_, const double& regularization_, const unsigned& minibatchSize_, const unsigned& CDstep_, const unsigned& maxStep_);
+        void ParametersSetting(const unsigned& N_train_, const unsigned& dimension_, const unsigned& n_hidden_,
+            const double& learningRate_, const double& regularization_, const unsigned& minibatchSize_, const unsigned& CDstep_, const unsigned& maxEpoch_);
 
         void PrintParameters() const;
         void WriteParameters(const string& filename) const;
 
-        unsigned GetN() const;
+        unsigned GetN_train() const;
         unsigned GetDimension() const;
 
         void PrintWeights() const;
@@ -110,7 +111,7 @@ void RestrictedBoltzmannMachines::ReadParameters(const string& filename) {
     ifstream fin(filename.c_str());
     string s;
     for (unsigned i=0; i<4; i++) getline(fin, s);
-    rbmParas.N = stoi(s);
+    rbmParas.N_train = stoi(s);
 
     getline(fin, s);    getline(fin, s);
     rbmParas.dimension = stoi(s);
@@ -131,21 +132,21 @@ void RestrictedBoltzmannMachines::ReadParameters(const string& filename) {
     rbmParas.CDstep = stoi(s);
 
     getline(fin, s);    getline(fin, s);
-    rbmParas.maxStep = stoi(s);
+    rbmParas.maxEpoch = stoi(s);
 }
 
 
-void RestrictedBoltzmannMachines::ParametersSetting(const unsigned& N_, const unsigned& dimension_, const unsigned& n_hidden_,
-    const double& learningRate_, const double& regularization_, const unsigned& minibatchSize_, const unsigned& CDstep_, const unsigned& maxStep_) {
+void RestrictedBoltzmannMachines::ParametersSetting(const unsigned& N_train_, const unsigned& dimension_, const unsigned& n_hidden_,
+    const double& learningRate_, const double& regularization_, const unsigned& minibatchSize_, const unsigned& CDstep_, const unsigned& maxEpoch_) {
 
-    rbmParas.N = N_;
+    rbmParas.N_train = N_train_;
     rbmParas.dimension = dimension_;
     rbmParas.n_hidden = n_hidden_;
     rbmParas.learningRate = learningRate_;
     rbmParas.regularization = regularization_;
     rbmParas.minibatchSize = minibatchSize_;
     rbmParas.CDstep = CDstep_;
-    rbmParas.maxStep = maxStep_;
+    rbmParas.maxEpoch = maxEpoch_;
 }
 
 
@@ -154,14 +155,14 @@ void RestrictedBoltzmannMachines::PrintParameters() const {
     cout << "################################################" << endl;
     cout << "##  Restricted Boltzmann Machines Parameters  ##" << endl;
     cout << "################################################" << endl << endl;
-    cout << "N: "                                       << rbmParas.N << endl;
+    cout << "number of train data: "                    << rbmParas.N_train << endl;
     cout << "dimension: "                               << rbmParas.dimension << endl;
     cout << "number of hidden nodes: "                  << rbmParas.n_hidden << endl ;
     cout << "learning rate: "                           << rbmParas.learningRate << endl;
     cout << "regularization rate: "                     << rbmParas.regularization << endl;
     cout << "minibatch size: "                          << rbmParas.minibatchSize << endl;
     cout << "Contrastive Divergence step (k): "         << rbmParas.CDstep << endl;
-    cout << "max iteration step: "                      << rbmParas.maxStep << endl << endl;
+    cout << "iteration max epochs: "                    << rbmParas.maxEpoch << endl << endl;
 }
 
 void RestrictedBoltzmannMachines::WriteParameters(const string& filename) const {
@@ -169,19 +170,19 @@ void RestrictedBoltzmannMachines::WriteParameters(const string& filename) const 
     fsave << "################################################" << endl;
     fsave << "##  Restricted Boltzmann Machines Parameters  ##" << endl;
     fsave << "################################################" << endl << endl;
-    fsave << "N: "                                      << rbmParas.N << endl;
+    fsave << "Number of train data: "                   << rbmParas.N_train << endl;
     fsave << "dimension: "                              << rbmParas.dimension << endl;
     fsave << "number of hidden nodes: "                 << rbmParas.n_hidden << endl ;
     fsave << "learning rate: "                          << rbmParas.learningRate << endl;
     fsave << "regularization rate: "                    << rbmParas.regularization << endl;
     fsave << "minibatch size: "                         << rbmParas.minibatchSize << endl;
     fsave << "Contrastive Divergence step (k): "        << rbmParas.CDstep << endl;
-    fsave << "max iteration step: "                     << rbmParas.maxStep << endl << endl;
+    fsave << "iteration max epochs: "                   << rbmParas.maxEpoch << endl << endl;
 }
 
 
 
-unsigned RestrictedBoltzmannMachines::GetN() const { return rbmParas.N; }
+unsigned RestrictedBoltzmannMachines::GetN_train() const { return rbmParas.N_train; }
 unsigned RestrictedBoltzmannMachines::GetDimension() const { return rbmParas.dimension; }
 
 
@@ -210,28 +211,28 @@ void RestrictedBoltzmannMachines::PrintBiasHidden() const {
 
 void RestrictedBoltzmannMachines::Initialize_Uniform(Weights& weight) {
 
-    double minmax = 1.0 / sqrt(weight.n_cols);
-//    double minmax = 1.0 / weight.n_cols;
+//    double minmax = 1.0 / sqrt(weight.n_cols);
+    double minmax = 1.0 / weight.n_cols;
     boost::random::uniform_real_distribution<> uniform_real_dist(-minmax, minmax);      //  Choose a distribution
     boost::random::variate_generator<boost::mt19937 &,
         boost::random::uniform_real_distribution<> > urnd(rng, uniform_real_dist);      //  link the Generator to the distribution
 
-    for (unsigned i=0; i<weight.n_rows; i++)
-        for (unsigned j=0; j<weight.n_cols; j++)
+    for (unsigned j=0; j<weight.n_cols; j++)
+        for (unsigned i=0; i<weight.n_rows; i++)
             weight(i, j) = urnd();
 }
 
 
 void RestrictedBoltzmannMachines::Initialize_Gaussian(Weights& weight) {
 
-    double std_dev = 1.0 / sqrt(weight.n_cols);
-//    double std_dev = 1.0 / weight.n_cols;
+//    double std_dev = 1.0 / sqrt(weight.n_cols);
+    double std_dev = 1.0 / weight.n_cols;
     boost::random::normal_distribution<> normal_dist(0.0, std_dev);         //  Choose a distribution
     boost::random::variate_generator<boost::random::mt19937 &,
         boost::random::normal_distribution<> > nrnd(rng, normal_dist);      //  link the Generator to the distribution
 
-    for (unsigned i=0; i<weight.n_rows; i++)
-        for (unsigned j=0; j<weight.n_cols; j++)
+    for (unsigned j=0; j<weight.n_cols; j++)
+        for (unsigned i=0; i<weight.n_rows; i++)
             weight(i, j) = nrnd();
 }
 
@@ -283,13 +284,13 @@ void RestrictedBoltzmannMachines::MiniBathces(arma::field<arma::vec>& minibatch)
     boost::random::variate_generator<boost::mt19937 &,
         boost::random::uniform_real_distribution<> > urnd(rng, uniform_real_dist);    //    link the Generator to the distribution
 
-    arma::vec rand_data(rbmParas.N);
-    for (unsigned n=0; n<rbmParas.N; n++)
+    arma::vec rand_data(rbmParas.N_train);
+    for (unsigned n=0; n<rbmParas.N_train; n++)
         rand_data(n) = urnd();
     arma::uvec shuffleindex = sort_index(rand_data);
 
-    unsigned n_minibatch = (unsigned) (rbmParas.N / rbmParas.minibatchSize);
-    unsigned remainder = rbmParas.N % rbmParas.minibatchSize;
+    unsigned n_minibatch = (unsigned) (rbmParas.N_train / rbmParas.minibatchSize);
+    unsigned remainder = rbmParas.N_train % rbmParas.minibatchSize;
     if ( remainder != 0 ) {
         n_minibatch++;
         minibatch.set_size(n_minibatch);
@@ -342,8 +343,8 @@ double RestrictedBoltzmannMachines::Sigmoid(const double& x) {
 class BinaryRBM : public RestrictedBoltzmannMachines {
     public:
         BinaryRBM();
-        BinaryRBM(const unsigned& N_, const unsigned& dimension_, const unsigned& n_hidden_,
-            const double& learningRate_, const double& regularization_, const unsigned& minibatchSize_, const unsigned& CDstep_, const unsigned& maxStep_);
+        BinaryRBM(const unsigned& N_train_, const unsigned& dimension_, const unsigned& n_hidden_,
+            const double& learningRate_, const double& regularization_, const unsigned& minibatchSize_, const unsigned& CDstep_, const unsigned& maxEpoch_);
 
         void PrintResults() const;
         void WriteResults(const string& filename) const;
@@ -357,11 +358,12 @@ class BinaryRBM : public RestrictedBoltzmannMachines {
         void TrainingOneStep(df::DataFrame<unsigned>& data);
         void TrainingMiniBatch(df::DataFrame<unsigned>& data, const Vector& minibatch, double& energy);
 
-        void GibbsSampling(arma::Row<unsigned>& sv, arma::vec& activation_hidden, const arma::Row<unsigned>& v, double& energy);
+        void GibbsSampling(arma::Row<unsigned>& sv, Vector& activation_hidden, const arma::Row<unsigned>& v, double& energy);
 
         void SamplingHiddenNodes_givenV(HiddenNodes& hidden, const arma::Row<unsigned>& sv);
         void SamplingHiddenNodes_givenV(HiddenNodes& hidden, const arma::Row<unsigned>& sv, Vector& activation_hidden, Vector& summation_hidden);
         double ConditionalProb_givenV(const arma::Row<unsigned>& sv, const unsigned& indexi);
+        double ConditionalProb_givenV(const arma::Row<unsigned>& sv, const unsigned& indexi, double& summation_hidden);
 
         void SamplingVisibleNodes_givenH(arma::Row<unsigned>& sv, const HiddenNodes& hidden);
         double ConditionalProb_givenH(const HiddenNodes& hidden, const unsigned& indexj);
@@ -369,23 +371,23 @@ class BinaryRBM : public RestrictedBoltzmannMachines {
         double Energy(const arma::Row<unsigned>& v, Vector& summation_hidden);
         void WriteEnergy(const string& filename, const double& energy);
 
-        void CumulationDeltaParameters(const arma::Row<unsigned>& vv, const arma::Row<unsigned>& sv, const arma::vec& activation_hidden);
+        void CumulationDeltaParameters(const arma::Row<unsigned>& vv, const arma::Row<unsigned>& sv, const Vector& activation_hidden);
         void UpdateParameter(const unsigned& minibatchSize);
-        void Activation_hidden_sample_k(arma::vec& activation_hidden, const arma::Row<unsigned>& sv);
+        void Activation_hidden_sample_k(Vector& activation_hidden, const arma::Row<unsigned>& sv);
 };
 
 BinaryRBM::BinaryRBM() {};
-BinaryRBM::BinaryRBM(const unsigned& N_, const unsigned& dimension_, const unsigned& n_hidden_,
-    const double& learningRate_, const double& regularization_, const unsigned& minibatchSize_, const unsigned& CDstep_, const unsigned& maxStep_) {
+BinaryRBM::BinaryRBM(const unsigned& N_train_, const unsigned& dimension_, const unsigned& n_hidden_,
+    const double& learningRate_, const double& regularization_, const unsigned& minibatchSize_, const unsigned& CDstep_, const unsigned& maxEpoch_) {
 
-    rbmParas.N = N_;
+    rbmParas.N_train = N_train_;
     rbmParas.dimension = dimension_;
     rbmParas.n_hidden = n_hidden_;
     rbmParas.learningRate = learningRate_;
     rbmParas.regularization = regularization_;
     rbmParas.minibatchSize = minibatchSize_;
     rbmParas.CDstep = CDstep_;
-    rbmParas.maxStep = maxStep_;
+    rbmParas.maxEpoch = maxEpoch_;
 }
 
 
@@ -468,10 +470,10 @@ void BinaryRBM::Training(df::DataFrame<unsigned>& data) {
     NamingFile(parafile);
     WriteParameters(parafile);
 
-    for (unsigned iter=0; iter<rbmParas.maxStep; iter++) {
-        cout << "iteration: " << iter << endl;
-        double remain_iter = (double) iter / (double) rbmParas.maxStep * 100;
-        cout << "remaining iteration ratio: " << remain_iter << "%" << endl << endl;
+    for (unsigned epoch=0; epoch<rbmParas.maxEpoch; epoch++) {
+        cout << "epochs: " << epoch << endl;
+        double remain_epoch = (double) epoch / (double) rbmParas.maxEpoch * 100;
+        cout << "remaining epochs ratio: " << remain_epoch << "%" << endl << endl;
 
         TrainingOneStep(data);
     }
@@ -487,10 +489,10 @@ void BinaryRBM::Training(df::DataFrame<unsigned>& data, const unsigned& step) {
     NamingFile(parafile);
     WriteParameters(parafile);
 
-    for (unsigned iter=0; iter<rbmParas.maxStep; iter++) {
-        cout << "iteration: " << iter << endl;
-        double remain_iter = (double) iter / (double) rbmParas.maxStep * 100;
-        cout << "remaining iteration ratio: " << remain_iter << "%" << endl << endl;
+    for (unsigned epoch=0; epoch<rbmParas.maxEpoch; epoch++) {
+        cout << "epochs: " << epoch << endl;
+        double remain_epoch = (double) epoch / (double) rbmParas.maxEpoch * 100;
+        cout << "remaining epochs ratio: " << remain_epoch << "%" << endl << endl;
 
         TrainingOneStep(data);
     }
@@ -510,7 +512,7 @@ void BinaryRBM::TrainingOneStep(df::DataFrame<unsigned>& data) {
     for (unsigned n=0; n<minibatch.size(); n++)
         TrainingMiniBatch(data, minibatch(n), energy);
 
-    energy /= (double) rbmParas.N;
+    energy /= (double) rbmParas.N_train;
 
     string energyfile = "brbm.energy.";
     NamingFile(energyfile);
@@ -528,7 +530,7 @@ void BinaryRBM::TrainingMiniBatch(df::DataFrame<unsigned>& data, const Vector& m
         arma::Row<unsigned> rawVisible = data.GetDataRow(minibatch(n));
         arma::Row<unsigned> sampleVisible = rawVisible;
 
-        arma::vec activation_hidden(rbmParas.n_hidden);
+        Vector activation_hidden(rbmParas.n_hidden);
 
         //    GibbsSampling
         GibbsSampling(sampleVisible, activation_hidden, rawVisible, energy);
@@ -544,7 +546,7 @@ void BinaryRBM::TrainingMiniBatch(df::DataFrame<unsigned>& data, const Vector& m
 
 
 
-void BinaryRBM::GibbsSampling(arma::Row<unsigned>& sv, arma::vec& activation_hidden, const arma::Row<unsigned>& v, double& energy) {
+void BinaryRBM::GibbsSampling(arma::Row<unsigned>& sv, Vector& activation_hidden, const arma::Row<unsigned>& v, double& energy) {
 
     HiddenNodes hidden(rbmParas.n_hidden);
     Vector summation_hidden(rbmParas.n_hidden);
@@ -577,15 +579,20 @@ void BinaryRBM::SamplingHiddenNodes_givenV(HiddenNodes& hidden, const arma::Row<
         boost::random::uniform_real_distribution<> > urnd(rng, uniform_real_dist);    //    link the Generator to the distribution
 
     for (unsigned i=0; i<rbmParas.n_hidden; i++) {
-        summation_hidden(i) = ConditionalProb_givenV(sv, i);
-        activation_hidden(i) = Sigmoid(summation_hidden(i));
+        activation_hidden(i) = ConditionalProb_givenV(sv, i, summation_hidden(i));
         hidden(i) = activation_hidden(i) > urnd() ? 1 : 0;
     }
 }
 
 double BinaryRBM::ConditionalProb_givenV(const arma::Row<unsigned>& sv, const unsigned& indexi) {
-    return arma::dot(weight.row(indexi), sv) + biasHidden(indexi);
+    return Sigmoid(arma::dot(weight.row(indexi), sv) + biasHidden(indexi));
 }
+
+double BinaryRBM::ConditionalProb_givenV(const arma::Row<unsigned>& sv, const unsigned& indexi, double& summation_hidden) {
+    summation_hidden = arma::dot(weight.row(indexi), sv) + biasHidden(indexi);
+    return Sigmoid(summation_hidden);
+}
+
 
 
 void BinaryRBM::SamplingVisibleNodes_givenH(arma::Row<unsigned>& sv, const HiddenNodes& hidden) {
@@ -617,7 +624,7 @@ void BinaryRBM::WriteEnergy(const string& filename, const double& energy) {
 
 
 
-void BinaryRBM::CumulationDeltaParameters(const arma::Row<unsigned>& rv, const arma::Row<unsigned>& sv, const arma::vec& activation_hidden) {
+void BinaryRBM::CumulationDeltaParameters(const arma::Row<unsigned>& rv, const arma::Row<unsigned>& sv, const Vector& activation_hidden) {
 
     arma::vec activation_hidden_sample_k(rbmParas.n_hidden);
     Activation_hidden_sample_k(activation_hidden_sample_k, sv);
@@ -636,7 +643,7 @@ void BinaryRBM::CumulationDeltaParameters(const arma::Row<unsigned>& rv, const a
 
 void BinaryRBM::UpdateParameter(const unsigned& minibatchSize) {
 
-    weight *= (1.0 - rbmParas.regularization * rbmParas.learningRate / (double) rbmParas.N);
+    weight *= (1.0 - rbmParas.regularization * rbmParas.learningRate / (double) rbmParas.N_train);
     weight += rbmParas.learningRate * delta_weight / (double) minibatchSize;
     biasVisible += rbmParas.learningRate * delta_biasVisible / (double) minibatchSize;
     biasHidden += rbmParas.learningRate * delta_biasHidden / (double) minibatchSize;
@@ -644,7 +651,7 @@ void BinaryRBM::UpdateParameter(const unsigned& minibatchSize) {
 
 
 
-void BinaryRBM::Activation_hidden_sample_k(arma::vec& activation_hidden, const arma::Row<unsigned>& sv) {
+void BinaryRBM::Activation_hidden_sample_k(Vector& activation_hidden, const arma::Row<unsigned>& sv) {
     for (unsigned i=0; i<rbmParas.n_hidden; i++)
         activation_hidden(i) = Sigmoid(arma::dot(weight.row(i), sv) + biasHidden(i));
 }
@@ -664,7 +671,7 @@ void BinaryRBM::Activation_hidden_sample_k(arma::vec& activation_hidden, const a
 class GaussianBernoulliRBM : public RestrictedBoltzmannMachines {
     public:
         GaussianBernoulliRBM();
-        GaussianBernoulliRBM(const unsigned& N_, const unsigned& dimension_, const unsigned& n_hidden_,
+        GaussianBernoulliRBM(const unsigned& N_train_, const unsigned& dimension_, const unsigned& n_hidden_,
             const double& learningRate_, const double& regularization_, const unsigned& minibatchSize_, const unsigned& CDstep_, const unsigned& maxStep_);
 
         void PrintStdev() const;
@@ -681,11 +688,12 @@ class GaussianBernoulliRBM : public RestrictedBoltzmannMachines {
         void TrainingOneStep(df::DataFrame<double>& data);
         void TrainingMiniBatch(df::DataFrame<double>& data, const Vector& minibatch, double& energy);
 
-        void GibbsSampling(arma::Row<double>& sv, arma::vec& activation_hidden, const arma::Row<double>& v, double& energy);
+        void GibbsSampling(arma::Row<double>& sv, Vector& activation_hidden, const arma::Row<double>& v, double& energy);
 
         void SamplingHiddenNodes_givenV(HiddenNodes& hidden, const arma::Row<double>& sv);
         void SamplingHiddenNodes_givenV(HiddenNodes& hidden, const arma::Row<double>& sv, Vector& activation_hidden, Vector& summation_hidden);
         double ConditionalProb_givenV(const arma::Row<double>& sv, const unsigned& indexi);
+        double ConditionalProb_givenV(const arma::Row<double>& sv, const unsigned& indexi, double& summation_hidden);
 
         void SamplingVisibleNodes_givenH(arma::Row<double>& sv, HiddenNodes& hidden);
         double ConditionalProb_givenH(const HiddenNodes& hidden, const unsigned& indexi);
@@ -693,9 +701,9 @@ class GaussianBernoulliRBM : public RestrictedBoltzmannMachines {
         double Energy(const arma::Row<double>& v, Vector& summation_hidden);
         void WriteEnergy(const string& filename, const double& energy);
 
-        void CumulationDeltaParameters(const arma::Row<double>& rv, const arma::Row<double>& sv, const arma::vec& activation_hidden);
+        void CumulationDeltaParameters(const arma::Row<double>& rv, const arma::Row<double>& sv, const Vector& activation_hidden);
         void UpdateParameter(const unsigned& minibatchSize);
-        void Activation_hidden_sample_k(arma::vec& activation_hidden, const arma::Row<double>& sv);
+        void Activation_hidden_sample_k(Vector& activation_hidden, const arma::Row<double>& sv);
 
 
 
@@ -705,17 +713,17 @@ class GaussianBernoulliRBM : public RestrictedBoltzmannMachines {
 };
 
 GaussianBernoulliRBM::GaussianBernoulliRBM() {};
-GaussianBernoulliRBM::GaussianBernoulliRBM(const unsigned& N_, const unsigned& dimension_, const unsigned& n_hidden_, 
-    const double& learningRate_, const double& regularization_, const unsigned& minibatchSize_, const unsigned& CDstep_, const unsigned& maxStep_) {
+GaussianBernoulliRBM::GaussianBernoulliRBM(const unsigned& N_train_, const unsigned& dimension_, const unsigned& n_hidden_, 
+    const double& learningRate_, const double& regularization_, const unsigned& minibatchSize_, const unsigned& CDstep_, const unsigned& maxEpoch_) {
 
-    rbmParas.N = N_;
+    rbmParas.N_train = N_train_;
     rbmParas.dimension = dimension_;
     rbmParas.n_hidden = n_hidden_;
     rbmParas.learningRate = learningRate_;
     rbmParas.regularization = regularization_;
     rbmParas.minibatchSize = minibatchSize_;
     rbmParas.CDstep = CDstep_;
-    rbmParas.maxStep = maxStep_;
+    rbmParas.maxEpoch = maxEpoch_;
 }
 
 
@@ -821,10 +829,10 @@ void GaussianBernoulliRBM::Training(df::DataFrame<double>& data) {
     NamingFile(parafile);
     WriteParameters(parafile);
 
-    for (unsigned iter=0; iter<rbmParas.maxStep; iter++) {
-        cout << "iteration: " << iter << endl;
-        double remain_iter = (double) iter / (double) rbmParas.maxStep * 100;
-        cout << "remaining iteration ratio: " << remain_iter << "%" << endl << endl;
+    for (unsigned epoch=0; epoch<rbmParas.maxEpoch; epoch++) {
+        cout << "epochs: " << epoch << endl;
+        double remain_epoch = (double) epoch / (double) rbmParas.maxEpoch * 100;
+        cout << "remaining epochs ratio: " << remain_epoch << "%" << endl << endl;
 
         TrainingOneStep(data);
     }
@@ -840,10 +848,10 @@ void GaussianBernoulliRBM::Training(df::DataFrame<double>& data, const unsigned&
     NamingFile(parafile);
     WriteParameters(parafile);
 
-    for (unsigned iter=0; iter<rbmParas.maxStep; iter++) {
-        cout << "iteration: " << iter << endl;
-        double remain_iter = (double) iter / (double) rbmParas.maxStep * 100;
-        cout << "remaining iteration ratio: " << remain_iter << "%" << endl << endl;
+    for (unsigned epoch=0; epoch<rbmParas.maxEpoch; epoch++) {
+        cout << "epochs: " << epoch << endl;
+        double remain_epoch = (double) epoch / (double) rbmParas.maxEpoch * 100;
+        cout << "remaining epochs ratio: " << remain_epoch << "%" << endl << endl;
 
         TrainingOneStep(data);
     }
@@ -863,7 +871,7 @@ void GaussianBernoulliRBM::TrainingOneStep(df::DataFrame<double>& data) {
     for (unsigned n=0; n<minibatch.size(); n++)
         TrainingMiniBatch(data, minibatch(n), energy);
 
-    energy /= (double) rbmParas.N;
+    energy /= (double) rbmParas.N_train;
 
     string energyfile = "gbrbm.energy.";
     NamingFile(energyfile);
@@ -881,7 +889,7 @@ void GaussianBernoulliRBM::TrainingMiniBatch(df::DataFrame<double>& data, const 
         arma::Row<double> rawVisible = data.GetDataRow(minibatch(n));
         arma::Row<double> sampleVisible = rawVisible;
 
-        arma::vec activation_hidden(rbmParas.n_hidden);
+        Vector activation_hidden(rbmParas.n_hidden);
 
         //    GibbsSampling
         GibbsSampling(sampleVisible, activation_hidden, rawVisible, energy);
@@ -898,7 +906,7 @@ void GaussianBernoulliRBM::TrainingMiniBatch(df::DataFrame<double>& data, const 
 
 
 
-void GaussianBernoulliRBM::GibbsSampling(arma::Row<double>& sv, arma::vec& activation_hidden, const arma::Row<double>& v, double& energy) {
+void GaussianBernoulliRBM::GibbsSampling(arma::Row<double>& sv, Vector& activation_hidden, const arma::Row<double>& v, double& energy) {
 
     HiddenNodes hidden(rbmParas.n_hidden);
     Vector summation_hidden(rbmParas.n_hidden);
@@ -930,18 +938,23 @@ void GaussianBernoulliRBM::SamplingHiddenNodes_givenV(HiddenNodes& hidden, const
         boost::random::uniform_real_distribution<> > urnd(rng, uniform_real_dist);    //    link the Generator to the distribution
 
     for (unsigned i=0; i<rbmParas.n_hidden; i++) {
-        summation_hidden(i) = ConditionalProb_givenV(sv, i);
-        activation_hidden(i) = Sigmoid(summation_hidden(i));
+        activation_hidden(i) = ConditionalProb_givenV(sv, i, summation_hidden(i));
         hidden(i) = activation_hidden(i) > urnd() ? 1 : 0;
     }
 }
 
 double GaussianBernoulliRBM::ConditionalProb_givenV(const arma::Row<double>& sv, const unsigned& indexi) {
 //    assume standard deviations are 1
-//    return arma::dot(weight.row(indexi), sv / stdev.t()) + biasHidden(indexi);
-    return arma::dot(weight.row(indexi), sv) + biasHidden(indexi);
+//    return Sigmoid(arma::dot(weight.row(indexi), sv / stdev.t()) + biasHidden(indexi));
+    return Sigmoid(arma::dot(weight.row(indexi), sv) + biasHidden(indexi));
 }
 
+double GaussianBernoulliRBM::ConditionalProb_givenV(const arma::Row<double>& sv, const unsigned& indexi, double& summation_hidden) {
+//    assume standard deviations are 1
+//    return Sigmoid(arma::dot(weight.row(indexi), sv / stdev.t()) + biasHidden(indexi));
+    summation_hidden = arma::dot(weight.row(indexi), sv) + biasHidden(indexi);
+    return Sigmoid(summation_hidden);
+}
 
 
 void GaussianBernoulliRBM::SamplingVisibleNodes_givenH(arma::Row<double>& sv, HiddenNodes& hidden) {
@@ -976,7 +989,7 @@ void GaussianBernoulliRBM::WriteEnergy(const string& filename, const double& ene
 
 
 
-void GaussianBernoulliRBM::CumulationDeltaParameters(const arma::Row<double>& rv, const arma::Row<double>& sv, const arma::vec& activation_hidden) {
+void GaussianBernoulliRBM::CumulationDeltaParameters(const arma::Row<double>& rv, const arma::Row<double>& sv, const Vector& activation_hidden) {
 
     arma::vec activation_hidden_sample_k(rbmParas.n_hidden);
     Activation_hidden_sample_k(activation_hidden_sample_k, sv);
@@ -1000,14 +1013,14 @@ void GaussianBernoulliRBM::CumulationDeltaParameters(const arma::Row<double>& rv
 
 void GaussianBernoulliRBM::UpdateParameter(const unsigned& minibatchSize) {
 
-    weight *= (1.0 - rbmParas.regularization * rbmParas.learningRate / (double) rbmParas.N);
+    weight *= (1.0 - rbmParas.regularization * rbmParas.learningRate / (double) rbmParas.N_train);
     weight += rbmParas.learningRate * delta_weight / (double) minibatchSize;
     biasVisible += rbmParas.learningRate * delta_biasVisible / (double) minibatchSize;
     biasHidden += rbmParas.learningRate * delta_biasHidden / (double) minibatchSize;
 }
 
 
-void GaussianBernoulliRBM::Activation_hidden_sample_k(arma::vec& activation_hidden, const arma::Row<double>& sv) {
+void GaussianBernoulliRBM::Activation_hidden_sample_k(Vector& activation_hidden, const arma::Row<double>& sv) {
 //    assume standard deviations are 1
     for (unsigned i=0; i<rbmParas.n_hidden; i++)
 //        activation_hidden(i) = Sigmoid(arma::dot(weight.row(i), sv / stdev.t()) + biasHidden(i));
