@@ -14,7 +14,7 @@
 10
 // Contrastive Divergence step (k)
 1
-// iteration max step
+// iteration max epochs
 10
 // Initialize type (gaussian or uniform)
-gaussian
+uniform
