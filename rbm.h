@@ -78,6 +78,7 @@ class RestrictedBoltzmannMachines {
         void PrintBiasHidden() const;
         virtual void PrintResults() const = 0;
         virtual void WriteResults(const string& filename) const = 0;
+        virtual void WriteResultsAppend(const string& filename) const = 0;
 
         virtual void ReadResultFile(const string& filename) = 0;
 
@@ -348,6 +349,7 @@ class BinaryRBM : public RestrictedBoltzmannMachines {
 
         void PrintResults() const;
         void WriteResults(const string& filename) const;
+        void WriteResultsAppend(const string& filename) const;
 
         void ReadResultFile(const string& filename);
 
@@ -409,6 +411,22 @@ void BinaryRBM::WriteResults(const string& filename) const {
     fsave << endl;
     fsave.close();
 }
+
+void BinaryRBM::WriteResultsAppend(const string& filename) const {
+    ofstream fsave;
+    fsave.open(filename, fstream::out | fstream::app);
+
+    fsave.precision(8);
+    fsave.setf(ios::fixed);
+    weight.raw_print(fsave, "weight matrix");
+    fsave << endl;
+    biasVisible.raw_print(fsave, "bias visible");
+    fsave << endl;
+    biasHidden.raw_print(fsave, "bias hidden");
+    fsave << endl;
+    fsave.close();
+}
+
 
 void BinaryRBM::ReadResultFile(const string& filename) {
 
@@ -677,6 +695,7 @@ class GaussianBernoulliRBM : public RestrictedBoltzmannMachines {
         void PrintStdev() const;
         void PrintResults() const;
         void WriteResults(const string& filename) const;
+        void WriteResultsAppend(const string& filename) const;
 
         void ReadResultFile(const string& filename);
 
@@ -756,6 +775,22 @@ void GaussianBernoulliRBM::WriteResults(const string& filename) const {
     fsave.close();
 }
 
+void GaussianBernoulliRBM::WriteResultsAppend(const string& filename) const {
+    ofstream fsave;
+    fsave.open(filename, fstream::out | fstream::app);
+
+    fsave.precision(8);
+    fsave.setf(ios::fixed);
+    weight.raw_print(fsave, "weight matrix");
+    fsave << endl;
+    biasVisible.raw_print(fsave, "bias visible");
+    fsave << endl;
+    biasHidden.raw_print(fsave, "bias hidden");
+    fsave << endl;
+    stdev.raw_print(fsave, "standard deviation");
+    fsave << endl;
+    fsave.close();
+}
 
 
 void GaussianBernoulliRBM::ReadResultFile(const string& filename) {
