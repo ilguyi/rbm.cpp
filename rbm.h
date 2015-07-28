@@ -93,7 +93,7 @@ class RestrictedBoltzmannMachines {
         void NamingFile(string& filename);
         void NamingFileStep(string& filename, const unsigned& step);
 
-        void MiniBathces(arma::field<arma::vec>& minibatch);
+        void MiniBathces(arma::field<Vector>& minibatch);
         void InitializeDeltaParameters();
 
        double Sigmoid(const double& x);
@@ -288,13 +288,13 @@ void RestrictedBoltzmannMachines::NamingFileStep(string& filename, const unsigne
 
 
 
-void RestrictedBoltzmannMachines::MiniBathces(arma::field<arma::vec>& minibatch) {
+void RestrictedBoltzmannMachines::MiniBathces(arma::field<Vector>& minibatch) {
 
     boost::random::uniform_real_distribution<> uniform_real_dist(0, 1);        //    Choose a distribution
     boost::random::variate_generator<boost::mt19937 &,
         boost::random::uniform_real_distribution<> > urnd(rng, uniform_real_dist);    //    link the Generator to the distribution
 
-    arma::vec rand_data(rbmParas.N_train);
+    Vector rand_data(rbmParas.N_train);
     for (unsigned n=0; n<rbmParas.N_train; n++)
         rand_data(n) = urnd();
     arma::uvec shuffleindex = sort_index(rand_data);
@@ -532,7 +532,7 @@ void BinaryRBM::Training(df::DataFrame<unsigned>& data, const unsigned& step) {
 
 void BinaryRBM::TrainingOneStep(df::DataFrame<unsigned>& data) {
 
-    arma::field<arma::vec> minibatch;
+    arma::field<Vector> minibatch;
     MiniBathces(minibatch);
 
     double energy = 0.0;
@@ -653,7 +653,7 @@ void BinaryRBM::WriteEnergy(const string& filename, const double& energy) {
 
 void BinaryRBM::CumulationDeltaParameters(const arma::Row<unsigned>& rv, const arma::Row<unsigned>& sv, const Vector& activation_hidden) {
 
-    arma::vec activation_hidden_sample_k(rbmParas.n_hidden);
+    Vector activation_hidden_sample_k(rbmParas.n_hidden);
     Activation_hidden_sample_k(activation_hidden_sample_k, sv);
 
 //    delta_weight += activation_hidden * rv - activation_hidden_sample_k * sv;
@@ -908,7 +908,7 @@ void GaussianBernoulliRBM::Training(df::DataFrame<double>& data, const unsigned&
 
 void GaussianBernoulliRBM::TrainingOneStep(df::DataFrame<double>& data) {
 
-    arma::field<arma::vec> minibatch;
+    arma::field<Vector> minibatch;
     MiniBathces(minibatch);
 
     double energy = 0.0;
@@ -1035,7 +1035,7 @@ void GaussianBernoulliRBM::WriteEnergy(const string& filename, const double& ene
 
 void GaussianBernoulliRBM::CumulationDeltaParameters(const arma::Row<double>& rv, const arma::Row<double>& sv, const Vector& activation_hidden) {
 
-    arma::vec activation_hidden_sample_k(rbmParas.n_hidden);
+    Vector activation_hidden_sample_k(rbmParas.n_hidden);
     Activation_hidden_sample_k(activation_hidden_sample_k, sv);
     
 //    assume standard deviations are 1
