@@ -24,7 +24,7 @@ namespace rbm {
 
 
 typedef arma::uvec HiddenNodes;
-typedef arma::mat Weights;
+typedef arma::mat Weight;
 typedef arma::vec Bias;
 typedef arma::vec Stdev;
 typedef arma::vec Vector;
@@ -73,7 +73,7 @@ class RestrictedBoltzmannMachines {
         unsigned GetN_train() const;
         unsigned GetDimension() const;
 
-        void PrintWeights() const;
+        void PrintWeight() const;
         void PrintBiasVisible() const;
         void PrintBiasHidden() const;
         virtual void PrintResults() const = 0;
@@ -83,8 +83,8 @@ class RestrictedBoltzmannMachines {
         virtual void ReadResultFile(const string& filename) = 0;
 
         virtual void Initialize(const string& initialize_type) = 0;
-        void Initialize_Uniform(Weights& weight);
-        void Initialize_Gaussian(Weights& weight);
+        void Initialize_Uniform(Weight& weight);
+        void Initialize_Gaussian(Weight& weight);
 
         void NamingFile(string& filename);
         void NamingFileStep(string& filename, const unsigned& step);
@@ -96,11 +96,11 @@ class RestrictedBoltzmannMachines {
 
 
     protected:
-        Weights weight;                //    weights W_{ij} between visible node (j) and hidden node (i)
+        Weight weight;                //    weight W_{ij} between visible node (j) and hidden node (i)
         Bias biasVisible;
         Bias biasHidden;
 
-        Weights delta_weight;
+        Weight delta_weight;
         Bias delta_biasVisible;
         Bias delta_biasHidden;
 
@@ -188,7 +188,7 @@ unsigned RestrictedBoltzmannMachines::GetDimension() const { return rbmParas.dim
 
 
 
-void RestrictedBoltzmannMachines::PrintWeights() const {
+void RestrictedBoltzmannMachines::PrintWeight() const {
     cout.precision(8);
     cout.setf(ios::fixed);
     weight.raw_print("weight matrix");
@@ -210,7 +210,7 @@ void RestrictedBoltzmannMachines::PrintBiasHidden() const {
 }
 
 
-void RestrictedBoltzmannMachines::Initialize_Uniform(Weights& weight) {
+void RestrictedBoltzmannMachines::Initialize_Uniform(Weight& weight) {
 
 //    double minmax = 1.0 / sqrt(weight.n_cols);
     double minmax = 1.0 / weight.n_cols;
@@ -224,7 +224,7 @@ void RestrictedBoltzmannMachines::Initialize_Uniform(Weights& weight) {
 }
 
 
-void RestrictedBoltzmannMachines::Initialize_Gaussian(Weights& weight) {
+void RestrictedBoltzmannMachines::Initialize_Gaussian(Weight& weight) {
 
 //    double std_dev = 1.0 / sqrt(weight.n_cols);
     double std_dev = 1.0 / weight.n_cols;
@@ -394,7 +394,7 @@ BinaryRBM::BinaryRBM(const unsigned& N_train_, const unsigned& dimension_, const
 
 
 void BinaryRBM::PrintResults() const {
-    PrintWeights();
+    PrintWeight();
     PrintBiasVisible();
     PrintBiasHidden();
 }
@@ -754,7 +754,7 @@ void GaussianBernoulliRBM::PrintStdev() const {
 }
 
 void GaussianBernoulliRBM::PrintResults() const {
-    PrintWeights();
+    PrintWeight();
     PrintBiasVisible();
     PrintBiasHidden();
     PrintStdev();
