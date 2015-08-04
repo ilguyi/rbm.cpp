@@ -96,7 +96,7 @@ class RestrictedBoltzmannMachines {
         void MiniBathces(arma::field<Vector>& minibatch);
         void InitializeDeltaParameters();
 
-       double Sigmoid(const double& x);
+        double Sigmoid(const double& x);
 
 
     protected:
@@ -270,7 +270,7 @@ void RestrictedBoltzmannMachines::NamingFileStep(string& filename, const unsigne
     filename += "h";
     ss << rbmParas.n_hidden;
     filename += ss.str();    ss.str("");
-    
+
     filename += "lr";
     ss << rbmParas.learningRate;
     filename += ss.str();    ss.str("");
@@ -504,7 +504,7 @@ void BinaryRBM::Training(df::DataFrame<unsigned>& data) {
 
         TrainingOneStep(data);
     }
-    
+
     string resfile = "brbm.result.";
     NamingFile(resfile);
     WriteResults(resfile);
@@ -523,7 +523,7 @@ void BinaryRBM::Training(df::DataFrame<unsigned>& data, const unsigned& step) {
 
         TrainingOneStep(data);
     }
-    
+
     string resfile = "brbm.result.";
     NamingFileStep(resfile, step);
     WriteResults(resfile);
@@ -658,15 +658,17 @@ void BinaryRBM::CumulationDeltaParameters(const arma::Row<unsigned>& rv, const a
 
 //    delta_weight += activation_hidden * rv - activation_hidden_sample_k * sv;
 //    for loops are faster than matrix multiplication
-	for (unsigned i=0; i<rbmParas.n_hidden; i++)
-		for (unsigned j=0; j<rbmParas.dimension; j++)
-			delta_weight(i, j) += activation_hidden(i) * (double) rv(j) - activation_hidden_sample_k(i) * (double) sv(j);
+    for (unsigned i=0; i<rbmParas.n_hidden; i++)
+        for (unsigned j=0; j<rbmParas.dimension; j++)
+            delta_weight(i, j) += activation_hidden(i) * (double) rv(j) - activation_hidden_sample_k(i) * (double) sv(j);
 
     for (unsigned j=0; j<rbmParas.dimension; j++)
         delta_biasVisible(j) += (double) rv(j) - (double) sv(j);
 
     delta_biasHidden += activation_hidden - activation_hidden_sample_k;
 }
+
+
 
 void BinaryRBM::UpdateParameter(const unsigned& minibatchSize) {
 
@@ -880,7 +882,7 @@ void GaussianBernoulliRBM::Training(df::DataFrame<double>& data) {
 
         TrainingOneStep(data);
     }
-    
+
     string resfile = "gbrbm.result.";
     NamingFile(resfile);
     WriteResults(resfile);
@@ -899,7 +901,7 @@ void GaussianBernoulliRBM::Training(df::DataFrame<double>& data, const unsigned&
 
         TrainingOneStep(data);
     }
-    
+
     string resfile = "gbrbm.result.";
     NamingFileStep(resfile, step);
     WriteResults(resfile);
@@ -1037,15 +1039,15 @@ void GaussianBernoulliRBM::CumulationDeltaParameters(const arma::Row<double>& rv
 
     Vector activation_hidden_sample_k(rbmParas.n_hidden);
     Activation_hidden_sample_k(activation_hidden_sample_k, sv);
-    
+
 //    assume standard deviations are 1
 //    delta_weight += activation_hidden * (rv / stdev.t()) - activation_hidden_sample_k * (sv / stdev.t());
 //    delta_weight += activation_hidden * rv - activation_hidden_sample_k * sv;
 //    for loops are faster than matrix multiplication
-	for (unsigned i=0; i<rbmParas.n_hidden; i++)
-		for (unsigned j=0; j<rbmParas.dimension; j++)
-//			delta_weight(i, j) += activation_hidden(i) * (double) rv(j) / stdev(j) - activation_hidden_sample_k(i) * (double) sv(j) / stdev(j);
-			delta_weight(i, j) += activation_hidden(i) * (double) rv(j) - activation_hidden_sample_k(i) * (double) sv(j);
+    for (unsigned i=0; i<rbmParas.n_hidden; i++)
+        for (unsigned j=0; j<rbmParas.dimension; j++)
+//            delta_weight(i, j) += activation_hidden(i) * (double) rv(j) / stdev(j) - activation_hidden_sample_k(i) * (double) sv(j) / stdev(j);
+            delta_weight(i, j) += activation_hidden(i) * (double) rv(j) - activation_hidden_sample_k(i) * (double) sv(j);
 
 //    biasVisible += (rv - sv).t() / stdev / stdev;
     delta_biasVisible += (rv - sv).t();
