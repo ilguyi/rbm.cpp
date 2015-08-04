@@ -5,7 +5,7 @@
 #include <ctime>
 #include <boost/random.hpp>
 #include <armadillo>
-#include <dataframe.h>
+#include "dataframe.h"
 #include "rbm.h"
 using namespace std;
 using namespace df;
@@ -31,25 +31,24 @@ int main (int argc, char** argv)
 
 
     //  Reading Input data file
-    DataFrame<unsigned> MNIST;
-//    DataFrame<double> MNIST;
+    DataFrame<unsigned> trainMNIST;
 //    Usage: ReadDataFile(filename, N, dimension, header, target)
-    MNIST.ReadDataFile(argv[1], N, dimension, "True", "True");
+    trainMNIST.ReadDataFile(argv[1], N, dimension, "True", "True");
     cout << "Read complete" << endl;
-//    MNIST.PrintData();
+//    trainMNIST.PrintData();
 
 
     //    Transform Binary Data for Binary Restricted Boltzmann Machines
-    MNIST.TransformBinaryData();
+    trainMNIST.TransformBinaryData();
     cout << "Transform binary data complete" << endl;
 
 
     //    Set linear scaling each features for Gaussian Bernoulli Restricted Boltzmann Machines
-//    DataFrame<double> normMNIST;
-//    MNIST.LinearScalingEachFeatures(normMNIST);
+//    DataFrame<double> trainMNIST_norm;
+//    trainMNIST.LinearScalingEachFeatures(trainMNIST_norm);
+//    trainMNIST.NormalizationEachFeatures(trainMNIST_norm);
 //    cout << "Normalize training data complete" << endl;
-//    normMNIST.PrintData();
-
+//    trainMNIST_norm.PrintData();
 
 
 
@@ -57,8 +56,8 @@ int main (int argc, char** argv)
     rbm.Initialize("uniform");
 
     for (unsigned step=0; step<1; step++) {
-        rbm.Training(MNIST, step);
-//        rbm.Training(normMNIST, step);
+        rbm.Training(trainMNIST, step);
+//        rbm.Training(trainMNIST_norm, step);
     }
 
 
